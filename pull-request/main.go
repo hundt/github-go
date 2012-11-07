@@ -15,7 +15,7 @@ var pushFirst = flag.Bool("p", false, "push to origin before making pull request
 
 var issue = flag.Int("i", -1, "existing issue to use instead of opening a new one")
 
-var reviewer = flag.String("r", "", "reviewer to assign immediately")
+var reviewers = flag.String("r", "", "comma-separated list of reviewers to assign immediately")
 
 func getEditor() (string, error) {
     data, err := exec.Command("git", "config", "core.editor").Output()
@@ -118,7 +118,7 @@ func showError(err error) {
 
 func main() {
     flag.Usage = func() {
-        fmt.Fprintf(os.Stderr, "Usage: %s [-p] [-i issue] [-r reviewer]\n\n", os.Args[0])
+        fmt.Fprintf(os.Stderr, "Usage: %s [-p] [-i issue] [-r reviewers]\n\n", os.Args[0])
         fmt.Print("The pull request will be\n  FROM the remote branch with the same name " +
             "as your local branch\n  TO master\n\n")
         fmt.Print("Options:\n")
@@ -175,11 +175,13 @@ func main() {
 
     fmt.Printf("%s\n", pull.IssueUrl)
     
-    if *reviewer != "" {
-        comment := c.CommentOnPullRequest(user, repo, pull.Number,
-            fmt.Sprintf("@%s Please review at your leisure", *reviewer))
-        if comment.Errors != nil {
-            showError(errors.New(fmt.Sprintf("error adding comment: %s", comment.Errors)))
+    if *reviewers != "" {
+        for _, reviewer := range strings.Split(*reviewers, ",") {
+            comment := c.CommentOnPullRequest(user, repo, pull.Number,
+                fmt.Sprintf("@%s Please review at your leisure", reviewer))
+            if comment.Errors != nil {
+                showError(errors.New(fmt.Sprintf("error adding comment: %s", comment.Errors)))
+            }
         }
     }
 }
