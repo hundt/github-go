@@ -72,7 +72,9 @@ func getRevList(branch string) ([]string, error) {
             fmt.Sprintf(
                 "Error running 'git log --oneline origin/master...%s'\n", branch))
     }
-    revs := strings.Split(strings.TrimSpace(string(output)), "\n")
+    rev_list := strings.TrimSpace(string(output))
+    if rev_list == "" { return nil, nil }
+    revs := strings.Split(rev_list, "\n")
     for i, rev := range revs {
         pieces := strings.SplitN(rev, " ", 2)
         if len(pieces) != 2 {
@@ -147,6 +149,12 @@ func main() {
     
     revs, err := getRevList(branch)
     if (err != nil) { showError(err) }
+    if revs == nil {
+        showError(
+            errors.New(
+                fmt.Sprintf("No commits between origin/master and %s. Did you forget to commit?",
+                    branch)))
+    }
     
     if *pushFirst {
         // Push to origin.
