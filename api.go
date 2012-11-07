@@ -95,6 +95,7 @@ var (
 
 type ApiClient struct {
     OAuthToken, User string
+    Debug bool
 }
 
 func ApiClientFromHubCredentials() (*ApiClient, error) {
@@ -115,7 +116,7 @@ func ApiClientFromHubCredentials() (*ApiClient, error) {
     if user == "" || token == "" {
         return nil, errors.New("Could not read user and token")
     }
-    return &ApiClient{token, user}, nil
+    return &ApiClient{OAuthToken: token, User: user}, nil
 }
 
 func (c *ApiClient) load(url string, data []byte) ([]byte, error) {
@@ -123,7 +124,7 @@ func (c *ApiClient) load(url string, data []byte) ([]byte, error) {
     if data != nil {
         method = "POST"
     }
-	//fmt.Print(url, string(data), "\n")
+	if c.Debug {fmt.Print("DEBUG: REQUEST: ", url, "\n", string(data), "\n")}
 	req, err := http.NewRequest(method, url, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
@@ -139,7 +140,7 @@ func (c *ApiClient) load(url string, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Print(string(body), "\n")
+	if c.Debug {fmt.Print("DEBUG: RESPONSE: ", string(body), "\n")}
 	return body, nil
 }
 

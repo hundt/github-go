@@ -13,6 +13,8 @@ import (
 
 var pushFirst = flag.Bool("p", false, "push to origin before making pull request")
 
+var debug = flag.Bool("d", false, "show debug output for network requests")
+
 var issue = flag.Int("i", -1, "existing issue to use instead of opening a new one")
 
 var reviewers = flag.String("r", "", "comma-separated list of reviewers to assign immediately")
@@ -118,7 +120,7 @@ func showError(err error) {
 
 func main() {
     flag.Usage = func() {
-        fmt.Fprintf(os.Stderr, "Usage: %s [-p] [-i issue] [-r reviewers]\n\n", os.Args[0])
+        fmt.Fprintf(os.Stderr, "Usage: %s [-d] [-p] [-i issue] [-r reviewers]\n\n", os.Args[0])
         fmt.Print("The pull request will be\n  FROM the remote branch with the same name " +
             "as your local branch\n  TO master\n\n")
         fmt.Print("Options:\n")
@@ -131,6 +133,7 @@ func main() {
     // Create API client
     c, err := github.ApiClientFromHubCredentials()
     if err != nil { showError(err) }
+    c.Debug = *debug
 
     // Determine branch.
     branch, err := getBranch()
