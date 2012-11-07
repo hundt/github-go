@@ -168,6 +168,10 @@ func main() {
     if pull.Errors != nil {
         showError(errors.New(fmt.Sprintf("error creating PR: %s", pull.Errors)))
     }
+    
+    if pull.Number == 0 {
+        showError(errors.New("Unknown error creating pull request"))
+    }
 
     fmt.Printf("%s\n", pull.IssueUrl)
     
