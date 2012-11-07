@@ -33,10 +33,12 @@ func getCommitMessageFromUser(defaultMessage string) (title, body string, err er
     fname := ".git/CHRIS_COMMIT_EDITMSG"
     err = ioutil.WriteFile(fname, []byte(defaultMessage), 0644)
     if err != nil { return "", "", err }
+    editorPath, err := exec.LookPath(editor)
+    if err != nil { return "", "", err }
     pa := &os.ProcAttr{Env: os.Environ(), Files: []*os.File{os.Stdin, os.Stdout, os.Stderr}}
-    p, err := os.StartProcess("/usr/bin/emacs", []string{editor, fname}, pa)
+    p, err := os.StartProcess(editorPath, []string{editorPath, fname}, pa)
     if err != nil {
-        return "", "", errors.New(fmt.Sprintf("Could not start editor '%s': %s", editor, err))
+        return "", "", errors.New(fmt.Sprintf("Could not start editor '%s': %s", editorPath, err))
     }
     ps, err := p.Wait()
     if err != nil {
