@@ -168,6 +168,8 @@ func main() {
     if pull.Errors != nil {
         showError(errors.New(fmt.Sprintf("error creating PR: %s", pull.Errors)))
     }
+
+    fmt.Printf("%s\n", pull.IssueUrl)
     
     if *reviewer != "" {
         comment := c.CommentOnPullRequest(user, repo, pull.Number,
@@ -176,6 +178,4 @@ func main() {
             showError(errors.New(fmt.Sprintf("error adding comment: %s", comment.Errors)))
         }
     }
-
-    fmt.Printf("%s\n", pull.IssueUrl)
 }
