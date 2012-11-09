@@ -21,10 +21,15 @@ var reviewers = flag.String("r", "", "comma-separated list of reviewers to assig
 
 func getEditor() (string, error) {
     data, err := exec.Command("git", "config", "core.editor").Output()
-    if err != nil {
-        return "", errors.New("'git config core.editor' failed")
+    if err == nil {
+        return strings.TrimSpace(string(data)), nil
     }
-    return strings.TrimSpace(string(data)), nil
+    // Editor not set in git config; try environment variables
+    editor := os.Getenv("VISUAL")
+    if editor != "" { return editor, nil }
+    editor = os.Getenv("EDITOR")
+    if editor != "" { return editor, nil }
+    return "vi", nil
 }
 
 func getCommitMessageFromUser(defaultMessage string) (title, body string, err error) {
