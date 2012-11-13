@@ -102,12 +102,12 @@ func getRevList(branch string) ([]string, error) {
 	return revs, nil
 }
 
-func getCommitMessage(sha string) (string, error) {
-	data, err := exec.Command("git", "show", "-s", "--format=%w(78,0,0)%s%n%+b", sha).Output()
-	if err != nil {
-		return "", errors.New("'git show -s --format=\"%w(78,0,0)%s%n%+b\" " + sha + "' failed")
-	}
-	return strings.TrimSpace(string(data)), nil
+func getCommitMessage(branch string) (string, error) {
+    data, err := exec.Command("git", "show", "-s", "--format=%w(78,0,0)%s%n%+b", "master.." + branch).Output()
+    if err != nil {
+        return "", errors.New("'git show -s --format=\"%w(78,0,0)%s%n%+b\" master.." + branch + "' failed")
+    }
+    return strings.TrimSpace(string(data)), nil
 }
 
 func getBranch() (string, error) {
@@ -193,13 +193,10 @@ func main() {
 	if *issue >= 0 {
 		pull = c.CreatePullRequestFromIssue(user, repo, *issue, branch, "master")
 	} else {
-		defaultMsg := ""
-		if len(revs) == 1 {
-			defaultMsg, err = getCommitMessage(revs[0])
-			if err != nil {
-				showError(err)
-			}
-		}
+        defaultMsg, err := getCommitMessage(branch)
+        if err != nil {
+            showError(err)
+        }
 
 		title, body, err := getCommitMessageFromUser(defaultMsg)
 		if err != nil {
