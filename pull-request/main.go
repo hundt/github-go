@@ -41,7 +41,7 @@ func getCommitMessageFromUser(defaultMessage string) (title, body string, err er
 	if err != nil {
 		return "", "", err
 	}
-	fname := ".git/CHRIS_COMMIT_EDITMSG"
+	fname := ".git/COMMIT_EDITMSG"
 	err = ioutil.WriteFile(fname, []byte(defaultMessage), 0644)
 	if err != nil {
 		return "", "", err
