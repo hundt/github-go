@@ -42,6 +42,26 @@ func pull() error {
 	return run(cmd, os.Stdout, os.Stderr)
 }
 
+func submit() error {
+	ri, err := getRemote()
+	if err != nil {
+		return err
+	}
+	sha, err := getHeadSha()
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("ssh",
+		"-p",
+		fmt.Sprintf("%d", ri.port),
+		fmt.Sprintf("%s@%s", ri.user, ri.host),
+		"gerrit",
+		"review",
+		"--submit",
+		sha)
+	return run(cmd, os.Stdout, os.Stderr)
+}
+
 func push() error {
 	ri, err := getRemote()
 	if err != nil {
@@ -197,6 +217,11 @@ Commands:
 		flag.Parse()
 		
 		if err := push(); err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+			os.Exit(1)
+		}
+	case "submit":
+		if err := submit(); err != nil {
 			fmt.Printf("Error: %s\n", err.Error())
 			os.Exit(1)
 		}
