@@ -134,6 +134,15 @@ func index(str, sep string, index int) int {
 	return i + index
 }
 
+func whoAmI() (string, error) {
+	cmd := exec.Command("whoami")
+	buf := new(bytes.Buffer)
+	if err := run(cmd, buf, os.Stderr); err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(buf.String()), nil
+}
+
 func getRemote() (*remoteInfo, error) {
 	cmd := exec.Command("git", "config", "remote.origin.url")
 	buf := new(bytes.Buffer)
@@ -146,22 +155,34 @@ func getRemote() (*remoteInfo, error) {
 	}
 	userStart := len("ssh://")
 	userEnd := index(url, "@", userStart)
+	hostStart := userEnd + 1  // skip @
+	user := ""
 	if userEnd == -1 {
-		return nil, errors.New("Invalid remote url: " + url)
+		// User not specified in URL--use default user
+		if u, err := whoAmI(); err != nil {
+			return nil, err
+		} else {
+			hostStart = userStart
+			user = u
+		}
+	} else {
+		user = url[userStart:userEnd]
 	}
-	hostStart := userEnd + 1
 	hostEnd := index(url, ":", hostStart)
-	if userEnd == -1 {
+	if hostEnd == -1 {
 		return nil, errors.New("Invalid remote url: " + url)
 	}
 	portStart := hostEnd + 1
 	portEnd := index(url, "/", portStart)
+	if portEnd == -1 {
+		return nil, errors.New("Invalid remote url: " + url)
+	}
 	port, err := strconv.Atoi(url[portStart:portEnd])
 	if err != nil {
 		return nil, err
 	}
 	return &remoteInfo{
-		user: url[userStart:userEnd],
+		user: user,
 		host: url[hostStart:hostEnd],
 		port: port,
 	}, nil
