@@ -17,6 +17,8 @@ var reviewers = flag.String("r", "", "comma-separated list of reviewers")
 
 var verify = flag.Bool("y", false, "verify after pushing")
 
+var approve = flag.Bool("a", false, "approve after pushing")
+
 func run(cmd *exec.Cmd, o io.Writer, e io.Writer) error {
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
@@ -75,16 +77,24 @@ func push() error {
 	if err := run(cmd, os.Stdout, os.Stderr); err != nil {
 		return err
 	}
-	if *verify {
-		cmd := exec.Command("ssh",
+	if *verify || *approve {
+		args := []string {
 			"-p",
 			fmt.Sprintf("%d", ri.port),
 			fmt.Sprintf("%s@%s", ri.user, ri.host),
 			"gerrit",
 			"review",
-			"--verified",
-			"1",
-			sha)
+		}
+		if (*verify) {
+			args = append(args, "--verified")
+			args = append(args, "1")
+		}
+		if (*approve) {
+			args = append(args, "--code-review")
+			args = append(args, "2")
+		}
+		args = append(args, sha)
+		cmd := exec.Command("ssh", args...)
 		if err := run(cmd, os.Stdout, os.Stderr); err != nil {
 			return err
 		}
